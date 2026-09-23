@@ -22,7 +22,19 @@ export class ValidationError extends Error {
   }
 }
 
+export class TransitionError extends Error {
+  constructor(public readonly from: RunStatus, public readonly to: RunStatus) {
+    super("invalid transition");
+  }
+}
+
 const CYCLES: Cycle[] = ["WLTC", "NEDC", "RDE"];
+const STATUSES: RunStatus[] = ["planned", "running", "done"];
+const ALLOWED_TRANSITIONS: Record<RunStatus, RunStatus[]> = {
+  planned: ["running"],
+  running: ["done"],
+  done: [],
+};
 
 export function validateNewRun(input: unknown): NewRun {
   const details: string[] = [];
@@ -46,6 +58,10 @@ export function validateNewRun(input: unknown): NewRun {
   };
 }
 
+export function isRunStatus(value: unknown): value is RunStatus {
+  return typeof value === "string" && (STATUSES as string[]).includes(value);
+}
+
 export class RunStore {
   private readonly runs = new Map<string, MeasurementRun>();
   private seq = 0;
@@ -61,6 +77,16 @@ export class RunStore {
 
   get(id: string): MeasurementRun | undefined {
     return this.runs.get(id);
+  }
+
+  transition(id: string, to: RunStatus): MeasurementRun | undefined {
+    const run = this.runs.get(id);
+    if (!run) return undefined;
+    if (!ALLOWED_TRANSITIONS[run.status].includes(to)) {
+      throw new TransitionError(run.status, to);
+    }
+    run.status = to;
+    return run;
   }
 
   create(input: NewRun): MeasurementRun {
