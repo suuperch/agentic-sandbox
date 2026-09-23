@@ -21,6 +21,8 @@ spec:
           ports:
             - name: http
               containerPort: 3000
+            - name: metrics
+              containerPort: 9100
           envFrom:
             - configMapRef:
                 name: sandbox-app-config

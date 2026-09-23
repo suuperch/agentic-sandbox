@@ -62,6 +62,10 @@ Every variable the app reads is declared in `src/config.ts` and provided by `k8s
 | `METRICS_ENABLED` | `false` | no | `true` enables a plain-text metrics listener |
 | `METRICS_PORT` | none | when `METRICS_ENABLED=true` | must differ from `PORT`; the process exits at startup if missing |
 
+## Metrics
+
+The deployment enables the metrics listener on port `9100`. The app serves plain-text counters at `http://<service-host>:9100/` and includes values such as `sandbox_runs_total` and `sandbox_uptime_seconds`.
+
 ## How the pipeline works
 
 `.github/workflows/ci.yml` runs two jobs on every push and pull request:
