@@ -33,6 +33,13 @@ export function createApp({ config, store }: AppContext): Express {
     return res.json(run);
   });
 
+  app.delete("/api/runs/:id", (req, res) => {
+    const result = store.delete(req.params.id);
+    if (result === "not-found") return res.status(404).json({ error: "run not found", id: req.params.id });
+    if (result === "in-progress") return res.status(409).json({ error: "run is in progress" });
+    return res.status(204).send();
+  });
+
   app.post("/api/runs", (req, res) => {
     const input = validateNewRun(req.body);
     const run = store.create(input);
