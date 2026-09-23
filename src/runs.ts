@@ -65,6 +65,14 @@ export class RunStore {
     return this.runs.get(id);
   }
 
+  delete(id: string): "not-found" | "in-progress" | "deleted" {
+    const run = this.runs.get(id);
+    if (!run) return "not-found";
+    if (run.status === "running") return "in-progress";
+    this.runs.delete(id);
+    return "deleted";
+  }
+
   create(input: NewRun): MeasurementRun {
     this.seq += 1;
     const run: MeasurementRun = {
