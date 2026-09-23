@@ -11,7 +11,9 @@
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #e3e6ea;font-size:.95rem}
   th{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:#5b6672}
   form{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;max-width:760px}
+  .filters{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;max-width:240px}
   input,select,button{padding:8px 10px;font:inherit;border:1px solid #c9ced6;border-radius:4px}
+  label{font-size:.85rem;color:#5b6672}
   button{background:#1e4fa3;color:#fff;border-color:#1e4fa3;cursor:pointer}
   .status{font-size:.85rem;color:#5b6672;min-height:1.2em}
 </style>
@@ -29,6 +31,10 @@
     <button type="submit">Add run</button>
   </form>
   <p id="status" class="status" role="status"></p>
+  <div class="filters">
+    <label for="vehicleFilter">Filter by vehicle</label>
+    <input id="vehicleFilter" name="vehicleFilter" type="text" autocomplete="off">
+  </div>
   <table aria-label="Runs">
     <thead><tr><th>ID</th><th>Vehicle</th><th>Cycle</th><th>CO2 g/km</th><th>Status</th></tr></thead>
     <tbody id="runs"></tbody>
@@ -36,11 +42,19 @@
 <script>
   const tbody = document.getElementById("runs");
   const status = document.getElementById("status");
-  async function load() {
-    const res = await fetch("/api/runs");
-    const runs = await res.json();
+  const vehicleFilter = document.getElementById("vehicleFilter");
+  let currentRuns = [];
+  function renderRuns() {
+    const filter = vehicleFilter.value.trim().toLowerCase();
+    const runs = filter ? currentRuns.filter(r => r.vehicleId.toLowerCase().includes(filter)) : currentRuns;
     tbody.innerHTML = runs.map(r => `<tr data-run-id="${r.id}"><td>${r.id}</td><td>${r.vehicleId}</td><td>${r.cycle}</td><td>${r.co2GramsPerKm}</td><td>${r.status}</td></tr>`).join("");
   }
+  async function load() {
+    const res = await fetch("/api/runs");
+    currentRuns = await res.json();
+    renderRuns();
+  }
+  vehicleFilter.addEventListener("input", renderRuns);
   document.getElementById("new-run").addEventListener("submit", async (e) => {
     e.preventDefault();
     const body = {
